@@ -167,7 +167,7 @@ class Recommender(object):
             database  = "postgres",
             user      = "postgres",
             password  = os.getenv('DB_PASSWORD'),
-            host      = "movie-rec-scrape.cvslmiksgnix.us-east-1.rds.amazonaws.com",
+            host      = "groa.cbayt2opbptw.us-east-1.rds.amazonaws.com",
             port      = '5432'
         )
         # create cursor that is used throughout
@@ -193,10 +193,9 @@ class Recommender(object):
         """Takes an id string and returns the movie info with a url."""
         try:
             info_query = f"""
-            SELECT m.primary_title, m.start_year, r.average_rating, r.num_votes
-            FROM movies m
-            JOIN ratings r ON m.movie_id = r.movie_id
-            WHERE m.movie_id = '{id}'"""
+            SELECT primary_title, start_year, average_rating, num_votes
+            FROM movies
+            WHERE movie_id = '{id}'"""
             self.cursor_dog.execute(info_query)
         except Exception as e:
             return tuple([f"Movie title unknown. ID:{id}", None, None, None, None, None, id])

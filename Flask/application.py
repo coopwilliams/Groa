@@ -153,6 +153,9 @@ def groa_recommend():
         watched = pd.DataFrame() # IMDb user only uploads ratings
         watchlist = pd.DataFrame()
     if '/letterboxd_submission' in str(request.referrer):
+        print('watched' in session)
+        print('reviews' in session)
+        print('watchlist' in session)
         (reviews,
         watched,
         watchlist) = multi_read_json(['reviews','watched','watchlist'])
@@ -174,7 +177,7 @@ def groa_recommend():
                                         ratings, watched, watchlist,
                                         good_threshold=good_rate,
                                         bad_threshold=bad_rate)
-
+    print("prepped")
     # pass dictionary of ratings if the user requests extra weighting
     weighting = ratings_dict if extra_weight else {}
 
@@ -184,6 +187,7 @@ def groa_recommend():
                         columns=['Title', 'Year', 'URL', 'Avg. Rating',
                         '# Votes', 'Similarity Score','Movie ID'])
 
+    print("recs")
     # make empty dataframes to return in case hidden or cult is deselected
     hidden_df = cult_df = pd.DataFrame()
 
@@ -203,12 +207,14 @@ def groa_recommend():
     # This runs 10x faster if not in a function. Probably a threading thing.
     recs['Liked by fans of...'] = recs['Movie ID'].apply(lambda x: s.get_most_similar_title(x, good_list))
     recs = rec_edit(recs, val_list) # Applies inline HTML formatting
+    print("rec edit")
 
     # Save dataframes for exporting to CSV later
     session['hidden_df'] = hidden_df.to_json()
     session['cult_df'] = cult_df.to_json()
     session['recs'] = recs.to_json()
 
+    print("session")
     (session['id_list'], # save variables that we use for repeat inferencing
     session['good_list'],
     session['bad_list'],
@@ -274,7 +280,8 @@ def resubmit():
     # color-code columns
     recs['New Rec?'] = bool_func(recs['Movie ID'], id_list2)
     recs['Title'] = highlight_watchlist(recs['Movie ID'], recs['Title'], val_list)
-    recs = recs[cols[-1:] + recs.columns.to_list()[:-1]] # moves New Rec? column to first column
+    cols=recs.columns.to_list()
+    recs = recs[cols[-1:] + cols[:-1]] # moves New Rec? column to first column
 
     # Save recs and user feedback for later
     session['recs'] = recs.to_json()

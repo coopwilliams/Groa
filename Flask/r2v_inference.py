@@ -50,7 +50,7 @@ class r2v_Recommender():
             database  = "postgres",
             user      = "postgres",
             password  = os.getenv('DB_PASSWORD'),
-            host      = "movie-rec-scrape.cvslmiksgnix.us-east-1.rds.amazonaws.com",
+            host      = "groa.cbayt2opbptw.us-east-1.rds.amazonaws.com",
             port      = '5432'
         )
         # create cursor that is used throughout
@@ -135,17 +135,16 @@ class r2v_Recommender():
             simset = tuple(sims)
             hidden_query = f"""
                             SELECT  m.primary_title, m.start_year, m.movie_id mid,
-                                    ra.num_votes num, ra.average_rating avgr,
-                                    r.user_rating taste, r.username,
+                                    m.num_votes num, m.average_rating avgr,
+                                    r.user_rating taste, r.user_name,
                                     r.review_text txt
-                            FROM reviews r
+                            FROM movie_reviews r
                             JOIN movies m ON r.movie_id = m.movie_id
-                            JOIN ratings ra ON r.movie_id = ra.movie_id
-                            WHERE username IN {simset}
+                            WHERE user_name IN {simset}
                             AND user_rating BETWEEN 8 AND 10
-								AND ra.average_rating BETWEEN 7 AND 10
-								AND ra.num_votes BETWEEN 1000 AND {max_votes}
-                            ORDER BY ra.average_rating DESC
+								AND m.average_rating BETWEEN 7 AND 10
+								AND m.num_votes BETWEEN 1000 AND {max_votes}
+                            ORDER BY m.average_rating DESC
                             LIMIT {n}
                             """
             self.cursor_dog.execute(hidden_query)
@@ -182,16 +181,15 @@ class r2v_Recommender():
             simset = tuple(sims)
             cult_query = f"""
                             SELECT  m.primary_title, m.start_year, m.movie_id mid,
-                                    ra.num_votes num, ra.average_rating avgr,
-                                    r.user_rating taste, r.username,
+                                    m.num_votes num, m.average_rating avgr,
+                                    r.user_rating taste, r.user_name,
                                     r.review_text txt
-                            FROM reviews r
+                            FROM movie_reviews r
                             JOIN movies m ON r.movie_id = m.movie_id
-                            JOIN ratings ra ON r.movie_id = ra.movie_id
-                            WHERE username IN {simset}
+                            WHERE user_name IN {simset}
                             AND user_rating BETWEEN 7 AND 10
 								AND user_rating BETWEEN 6 AND 10
-								AND user_rating >= (ra.average_rating + 3)
+								AND user_rating >= (m.average_rating + 3)
                             ORDER BY user_rating DESC
                             LIMIT {n}
                 """
